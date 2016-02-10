@@ -465,8 +465,8 @@ namespace PowerPointLabs.PositionsLab
 
         public static void DistributeCenter()
         {
+            AlignCenter();
             DistributeHorizontal();
-            DistributeVertical();
         }
         #endregion
 
