@@ -576,5 +576,11 @@ namespace PowerPointLabs.PositionsLab
             prevMousePos = new System.Drawing.Point();
         }
 
+        private void TestButton_Click(object sender, RoutedEventArgs e)
+        {
+            List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
+            var currentSlide = this.GetCurrentSlide();
+            PositionsLabMain.TestingMethod(selectedShapes, currentSlide);
+        }
     }
 }

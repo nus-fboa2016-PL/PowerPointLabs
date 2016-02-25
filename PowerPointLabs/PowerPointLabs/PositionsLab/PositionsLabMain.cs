@@ -12,6 +12,7 @@ using PowerPoint = Microsoft.Office.Interop.PowerPoint;
 using AutoShape = Microsoft.Office.Core.MsoAutoShapeType;
 using System.Diagnostics;
 using Drawing = System.Drawing;
+using System.IO;
 
 namespace PowerPointLabs.PositionsLab
 {
@@ -963,5 +964,122 @@ namespace PowerPointLabs.PositionsLab
         }
 
         #endregion
+
+        public static void TestingMethod(List<Shape> selectedShapes, PowerPointSlide currentSlide)
+        {
+            // Get the temp folder path for temporary storage of image
+            String folderPath = Path.GetTempPath() + @"\" + "pptlabs_positionsLab" + @"\";
+
+            // Create temp folder if it does not exist
+            // TODO: Wrap in try-catch block
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+
+            // Iterate through all currently selected shape to get their vertices
+            foreach (Shape currShape in selectedShapes)
+            {
+                // Eliminate shapes that fills up bounding box or has no nodes
+                // TODO: Create a list of shape that fills up bounding box, and check against that
+                if (currShape.AutoShapeType == MsoAutoShapeType.msoShapeRectangle)
+                {
+                    Debug.WriteLine("Detected rectangle");
+                    continue;
+                }
+
+                if (currShape.AutoShapeType == MsoAutoShapeType.msoShapeOval)
+                {
+                    Debug.WriteLine("Detected oval");
+                    continue;
+                }
+
+                // Export the image into the temp folder, and get the path where it is stored
+                String imagePath = ExportShape(folderPath, currShape, PpShapeFormat.ppShapeFormatEMF);
+
+                // Import the image into current slide
+                var importedImage = ImportImage(imagePath, currentSlide, currShape);
+
+                // Ungroup image to get freeform shapes within
+                var ungroupedShapes = importedImage.Ungroup();
+                var shapesInImage = ungroupedShapes.GroupItems;
+
+                // The freeform shape that's the bondary is always the third shape
+                var nodes = shapesInImage[3].Nodes;
+                Debug.WriteLine("Processing shape: " + currShape.Name);
+
+                // Get the co-ordinates of node in that freeform shape
+                try
+                {
+                    foreach (PowerPoint.ShapeNode sn in nodes)
+                    {
+                        double x = sn.Points[1, 1];
+                        double y = sn.Points[1, 2];
+                        Debug.WriteLine("Co-ord : (" + x + " ," + y + ")");
+                    }
+                }
+                catch (Exception)
+                {
+                    Debug.WriteLine("Bug cause: " + currShape.Name);
+                }
+            }
+
+            // Clean the temp directory
+            CleanTempDirectory(folderPath);
+        }
+
+        /// <summary>
+        /// Exports a set of shapes as one image with the specified format
+        /// </summary>
+        /// <param name="folderPath">The path where the image is to be exported to</param>
+        /// <param name="selectedShape">The selected shapes to export</param>
+        /// <param name="format">The format of image to be exported as. Should be a PpShapeFormat enum value</param>
+        private static String ExportShape(String folderPath, Shape selectedShape, PpShapeFormat format)
+        {
+            var imagePath = folderPath + "exportedImage" + DateTime.Now.GetHashCode() + "-" + Guid.NewGuid().ToString().Substring(0, 7);
+            selectedShape.Export(imagePath + ".emf", format, 1, 1, PpExportMode.ppRelativeToSlide);
+
+            return imagePath + ".emf";
+        }
+
+        /// <summary>
+        /// Imports an image from the specified path
+        /// </summary>
+        /// <param name="imagePath">Path where the image to be imported can be found</param>
+        /// <returns></returns>
+        private static Shape ImportImage(String imagePath, PowerPointSlide slideToImportTo, Shape originalShape)
+        {
+            slideToImportTo.Shapes.AddPicture(imagePath, MsoTriState.msoFalse, MsoTriState.msoTrue, 0, 0);
+            Shape importedShape = slideToImportTo.Shapes[slideToImportTo.Shapes.Count];
+            Debug.WriteLine("Imported shape holding on to shape: " + importedShape.Name);
+            Drawing.PointF originalCenter = Graphics.GetCenterPoint(originalShape);
+            Drawing.PointF importedCenter = Graphics.GetCenterPoint(importedShape);
+
+            importedShape.IncrementLeft(originalCenter.X - importedCenter.X);
+            importedShape.IncrementTop(originalCenter.Y - importedCenter.Y);
+            
+            return importedShape;
+        }
+
+        /// <summary>
+        /// Cleans the temporary directory used to store images
+        /// </summary>
+        /// <param name="folderPath">Path for the temp folder</param>
+        private static void CleanTempDirectory(String folderPath)
+        {
+            var directory = new DirectoryInfo(folderPath);
+
+            try
+            {
+                foreach (FileInfo file in directory.GetFiles()) file.Delete();
+                Debug.WriteLine("deleted");
+                foreach (DirectoryInfo subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
+            }
+            catch (Exception)
+            {
+                Debug.WriteLine("Unable to delete");
+                // ignore ex, if cannot delete trash
+            }
+        }
     }
 }

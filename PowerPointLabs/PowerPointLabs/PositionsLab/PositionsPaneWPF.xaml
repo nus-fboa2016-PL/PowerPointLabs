@@ -51,6 +51,7 @@
             <Button ToolTip="Snaps object to a vertical rotation" x:Name="snapAwayButton" Content="Away" HorizontalAlignment="Left" Margin="154,557,0,0" VerticalAlignment="Top" Width="60" Height="45" Click="SnapAwayButton_Click"/>
 	        <CheckBox ToolTip="Select this to set the slide as reference object for the functions" x:Name="slideAsReference" Content="Use slide as reference" HorizontalAlignment="Left" Margin="24,666,0,0" VerticalAlignment="Top" IsChecked="False" Checked="UseSlideAsReference" Unchecked="UseShapeAsReference"/>
             <CheckBox ToolTip="Select this to choose the reference object for the functions" x:Name="shapeAsReference" Content="Use shape as reference" HorizontalAlignment="Left" Margin="24,643,0,0" VerticalAlignment="Top" IsChecked="True" Checked="UseShapeAsReference" Unchecked="UseSlideAsReference"/>
+            <Button x:Name="testButton" Content="Test" HorizontalAlignment="Left" Margin="204,649,0,0" VerticalAlignment="Top" Width="75" Click="TestButton_Click"/>
         </Grid>
     </ScrollViewer>
 </UserControl>
