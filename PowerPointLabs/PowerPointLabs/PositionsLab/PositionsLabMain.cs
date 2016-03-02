@@ -1011,57 +1011,132 @@ namespace PowerPointLabs.PositionsLab
                 currShape.Rotation = rotationAngle;
                 var shapesInImage = ungroupedShapes.GroupItems;
 
+                #region using Nodes to get coordinates
                 // The freeform shape that's the boundary is always the third shape
-                //var nodes = shapesInImage[3].Nodes;
-                //Debug.WriteLine("Processing shape: " + currShape.Name + "'s nodes");
-
-                //// Get the co-ordinates of node in that freeform shape
-                //try
-                //{
-                //    foreach (PowerPoint.ShapeNode sn in nodes)
-                //    {
-                //        double x = sn.Points[1, 1];
-                //        double y = sn.Points[1, 2];
-                //        Debug.WriteLine("Co-ord : (" + x + " ," + y + ")");
-
-                //        // Pasting the original shape to manually check where are the nodes
-                //        var pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PowerPoint.PpPasteDataType.ppPastePNG)[1];
-                //        pic.Left = (float) x;
-                //        pic.Top = (float) y;
-                //        pic.Select();
-                //    }
-                //}
-                //catch (Exception)
-                //{
-                //    Debug.WriteLine("Failed to process nodes for: " + currShape.Name);
-                //}
+                var nodes = shapesInImage[3].Nodes;
+                Debug.WriteLine("Processing shape: " + currShape.Name + "'s nodes");
 
 
-                // Using vertices instead of nodes of the freeform shape to get coordinates
-                var vertices = shapesInImage[3].Vertices;
-                Debug.WriteLine("Processing shape: " + currShape.Name + "'s vertices");
+                Drawing.PointF leftMost = new Drawing.PointF();
+                Drawing.PointF topMost = new Drawing.PointF();
+                Drawing.PointF rightMost = new Drawing.PointF();
+                Drawing.PointF bottomMost = new Drawing.PointF();
 
+                // Initialising topMost and leftMost to the first node
+                leftMost.X = nodes[1].Points[1, 1];
+                leftMost.Y = nodes[1].Points[1, 2];
+                Debug.WriteLine("Initial left most: (" + leftMost.X + ", " + leftMost.Y + ")");
+                topMost.X = nodes[1].Points[1, 1];
+                topMost.Y = nodes[1].Points[1, 2];
+                Debug.WriteLine("Initial top most: (" + topMost.X + ", " + topMost.Y + ")");
+
+                // Get the co-ordinates of node in that freeform shape
                 try
                 {
-                    var vertexCount = vertices.Length;
-                    for (int i = 1; i < vertexCount/2; i++)
+                    foreach (PowerPoint.ShapeNode sn in nodes)
                     {
-                        double x = vertices[i, 1];
-                        double y = vertices[i, 2];
-                        Debug.WriteLine("Co-ord: (" + x + "," + y + ")");
 
-                        // Pasting the original shape to manually check where are the nodes
-                        var pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PowerPoint.PpPasteDataType.ppPastePNG)[1];
-                        pic.Left = (float)x;
-                        pic.Top = (float)y;
-                        pic.Select();
+                        // Works for most shapes, except for weirdos like Chords 
+                        if (sn.EditingType == MsoEditingType.msoEditingSymmetric)
+                        {
+                            continue;
+                        }
+                        
+                        float x = sn.Points[1, 1];
+                        float y = sn.Points[1, 2];
+
+                        Debug.WriteLine("Co-ord : (" + x + " ," + y + ")");
+
+                        // Check left most
+                        if (x < leftMost.X)
+                        {
+                            leftMost.X = x;
+                            leftMost.Y = y;
+                            Debug.WriteLine("new left most: (" + leftMost.X + ", " + leftMost.Y + ")");
+                        }
+
+                        // Check top most
+                        if (y < topMost.Y)
+                        {
+                            topMost.X = x;
+                            topMost.Y = y;
+                        }
+
+                        // Check for right most
+                        if (x > rightMost.X)
+                        {
+                            rightMost.X = x;
+                            rightMost.Y = y;
+                        }
+
+                        // Check bottom most
+                        if (y > bottomMost.Y)
+                        {
+                            bottomMost.X = x;
+                            bottomMost.Y = y;
+                        }
                     }
-
                 }
                 catch (Exception)
                 {
-                    Debug.WriteLine("Failed to process vertices for: " + currShape.Name);
+                    Debug.WriteLine("Failed to process nodes for: " + currShape.Name);
                 }
+
+                Debug.WriteLine("Left Most: (" + leftMost.X + ", " + leftMost.Y + ")");
+                Debug.WriteLine("Top Most: (" + topMost.X + ", " + topMost.Y + ")");
+                Debug.WriteLine("Right Most: (" + rightMost.X + ", " + rightMost.Y + ")");
+                Debug.WriteLine("Bottom Most: (" + bottomMost.X + ", " + bottomMost.Y + ")");
+
+                // Pasting the original shape to manually check where are the extreme ends
+                var pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PowerPoint.PpPasteDataType.ppPastePNG)[1];
+                pic.Left = leftMost.X;
+                pic.Top = leftMost.Y;
+                pic.Name = "leftMost" + Guid.NewGuid();
+
+                pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PowerPoint.PpPasteDataType.ppPastePNG)[1];
+                pic.Left = topMost.X;
+                pic.Top = topMost.Y;
+                pic.Name = "topMost " + Guid.NewGuid();
+
+                pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PowerPoint.PpPasteDataType.ppPastePNG)[1];
+                pic.Left = rightMost.X;
+                pic.Top = rightMost.Y;
+                pic.Name = "rightMost" + Guid.NewGuid();
+
+                pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PowerPoint.PpPasteDataType.ppPastePNG)[1];
+                pic.Left = bottomMost.X;
+                pic.Top = bottomMost.Y;
+                pic.Name = "bottomMost" + Guid.NewGuid();
+
+                #endregion
+
+                #region using vertices for coordinates
+                //// Using vertices instead of nodes of the freeform shape to get coordinates
+                //var vertices = shapesInImage[3].Vertices;
+                //Debug.WriteLine("Processing shape: " + currShape.Name + "'s vertices");
+
+                //try
+                //{
+                //    var vertexCount = vertices.Length;
+                //    for (int i = 1; i < vertexCount/2; i++)
+                //    {
+                //        double x = vertices[i, 1];
+                //        double y = vertices[i, 2];
+                //        Debug.WriteLine("Co-ord: (" + x + "," + y + ")");
+
+                //        // Pasting the original shape to manually check where are the nodes
+                //        var pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PowerPoint.PpPasteDataType.ppPastePNG)[1];
+                //        pic.Left = (float)x;
+                //        pic.Top = (float)y;
+                //        pic.Select();
+                //    }
+
+                //}
+                //catch (Exception)
+                //{
+                //    Debug.WriteLine("Failed to process vertices for: " + currShape.Name);
+                //}
+                #endregion
 
             }
 
