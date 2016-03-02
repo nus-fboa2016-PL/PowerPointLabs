@@ -1011,30 +1011,58 @@ namespace PowerPointLabs.PositionsLab
                 currShape.Rotation = rotationAngle;
                 var shapesInImage = ungroupedShapes.GroupItems;
 
-                // The freeform shape that's the bondary is always the third shape
-                var nodes = shapesInImage[3].Nodes;
-                Debug.WriteLine("Processing shape: " + currShape.Name);
+                // The freeform shape that's the boundary is always the third shape
+                //var nodes = shapesInImage[3].Nodes;
+                //Debug.WriteLine("Processing shape: " + currShape.Name + "'s nodes");
 
-                // Get the co-ordinates of node in that freeform shape
+                //// Get the co-ordinates of node in that freeform shape
+                //try
+                //{
+                //    foreach (PowerPoint.ShapeNode sn in nodes)
+                //    {
+                //        double x = sn.Points[1, 1];
+                //        double y = sn.Points[1, 2];
+                //        Debug.WriteLine("Co-ord : (" + x + " ," + y + ")");
+
+                //        // Pasting the original shape to manually check where are the nodes
+                //        var pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PowerPoint.PpPasteDataType.ppPastePNG)[1];
+                //        pic.Left = (float) x;
+                //        pic.Top = (float) y;
+                //        pic.Select();
+                //    }
+                //}
+                //catch (Exception)
+                //{
+                //    Debug.WriteLine("Failed to process nodes for: " + currShape.Name);
+                //}
+
+
+                // Using vertices instead of nodes of the freeform shape to get coordinates
+                var vertices = shapesInImage[3].Vertices;
+                Debug.WriteLine("Processing shape: " + currShape.Name + "'s vertices");
+
                 try
                 {
-                    foreach (PowerPoint.ShapeNode sn in nodes)
+                    var vertexCount = vertices.Length;
+                    for (int i = 1; i < vertexCount/2; i++)
                     {
-                        double x = sn.Points[1, 1];
-                        double y = sn.Points[1, 2];
-                        Debug.WriteLine("Co-ord : (" + x + " ," + y + ")");
+                        double x = vertices[i, 1];
+                        double y = vertices[i, 2];
+                        Debug.WriteLine("Co-ord: (" + x + "," + y + ")");
 
                         // Pasting the original shape to manually check where are the nodes
                         var pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PowerPoint.PpPasteDataType.ppPastePNG)[1];
-                        pic.Left = (float) x;
-                        pic.Top = (float) y;
-                        pic.Select();]
+                        pic.Left = (float)x;
+                        pic.Top = (float)y;
+                        pic.Select();
                     }
+
                 }
                 catch (Exception)
                 {
-                    Debug.WriteLine("Bug cause: " + currShape.Name);
+                    Debug.WriteLine("Failed to process vertices for: " + currShape.Name);
                 }
+
             }
 
             // Clean the temp directory
