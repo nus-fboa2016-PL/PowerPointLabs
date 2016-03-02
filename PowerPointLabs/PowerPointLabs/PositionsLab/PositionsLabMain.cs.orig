@@ -12,7 +12,6 @@ using PowerPoint = Microsoft.Office.Interop.PowerPoint;
 using AutoShape = Microsoft.Office.Core.MsoAutoShapeType;
 using System.Diagnostics;
 using Drawing = System.Drawing;
-using System.IO;
 
 namespace PowerPointLabs.PositionsLab
 {
@@ -46,39 +45,6 @@ namespace PowerPointLabs.PositionsLab
         private static Dictionary<MsoAutoShapeType, float> shapeDefaultUpAngle;
         private static bool _alignUseSlideAsReference = false;
         private static bool _distributeUseSlideAsReference = false;
-
-        private static readonly ISet<MsoAutoShapeType> ShapeFillsBoundingBox = new HashSet<MsoAutoShapeType>
-        {
-            MsoAutoShapeType.msoShapeRectangle,
-            MsoAutoShapeType.msoShapeBevel,
-            MsoAutoShapeType.msoShapeFrame,
-            MsoAutoShapeType.msoShapeFlowchartProcess,
-            MsoAutoShapeType.msoShapeFlowchartPredefinedProcess,
-            MsoAutoShapeType.msoShapeFlowchartInternalStorage,
-            MsoAutoShapeType.msoShapeActionButtonBackorPrevious,
-            MsoAutoShapeType.msoShapeActionButtonForwardorNext,
-            MsoAutoShapeType.msoShapeActionButtonBeginning,
-            MsoAutoShapeType.msoShapeActionButtonEnd,
-            MsoAutoShapeType.msoShapeActionButtonHome,
-            MsoAutoShapeType.msoShapeActionButtonInformation,
-            MsoAutoShapeType.msoShapeActionButtonReturn,
-            MsoAutoShapeType.msoShapeActionButtonMovie,
-            MsoAutoShapeType.msoShapeActionButtonDocument,
-            MsoAutoShapeType.msoShapeActionButtonSound,
-            MsoAutoShapeType.msoShapeActionButtonHelp,
-            MsoAutoShapeType.msoShapeActionButtonCustom
-        }; 
-
-        private static readonly ISet<MsoAutoShapeType> ShapeHasNoNodes = new HashSet<MsoAutoShapeType>()
-        {
-            MsoAutoShapeType.msoShapeOval
-        }; 
-
-        private static readonly ISet<MsoAutoShapeType> ShapeNotSupportedForInternalVertices = new HashSet<MsoAutoShapeType>
-        {
-            MsoAutoShapeType.msoShapeChord,
-            MsoAutoShapeType.msoShapeHeart
-        }; 
 
         #region API
 
@@ -892,20 +858,11 @@ namespace PowerPointLabs.PositionsLab
             }
         }
 
+<<<<<<< HEAD
+        public static void DistributeGridByRow(List<Shape> selectedShapes, int rowLength, int colLength, float marginTop, float marginBottom, float marginLeft, float marginRight, int alignment)
+=======
         public static void DistributeGrid(List<Shape> selectedShapes, int rowLength, int colLength)
-        {
-            int colLengthGivenFullRows = (int)Math.Ceiling((double)selectedShapes.Count / rowLength);
-            if (colLength <= colLengthGivenFullRows)
-            {
-                DistributeGridByRow(selectedShapes, rowLength, colLength);
-            }
-            else
-            {
-                DistributeGridByCol(selectedShapes, rowLength, colLength);
-            }
-        }
-
-        public static void DistributeGridByRow(List<Shape> selectedShapes, int rowLength, int colLength)
+>>>>>>> 264be27e1d5e64aa79ad8b9990c35fbdb57ae994
         {
             Drawing.PointF refPoint = Graphics.GetCenterPoint(selectedShapes[0]);
 
@@ -917,14 +874,18 @@ namespace PowerPointLabs.PositionsLab
                 allShapes.Add(new PPShape(selectedShapes[i]));
             }
 
-            int numIndicesToSkip = IndicesToSkip(numShapes, rowLength, _distributeGridAlignment);
+            int numIndicesToSkip = IndicesToSkip(numShapes, rowLength, alignment);
 
             float[] rowDifferences = GetLongestWidthsOfRowsByRow(allShapes, rowLength, numIndicesToSkip);
             float[] colDifferences = GetLongestHeightsOfColsByRow(allShapes, rowLength, colLength);
 
             float posX = refPoint.X;
             float posY = refPoint.Y;
+<<<<<<< HEAD
             int remainder = numShapes % rowLength;
+=======
+            int numIndicesToSkip = IndicesToSkip(numShapes, rowLength, _distributeGridAlignment);
+>>>>>>> 264be27e1d5e64aa79ad8b9990c35fbdb57ae994
             int differenceIndex = 0;
 
             for (int i = 0; i < numShapes; i++)
@@ -934,27 +895,39 @@ namespace PowerPointLabs.PositionsLab
                 {
                     posX = refPoint.X;
                     differenceIndex = 0;
-                    posY += GetSpaceBetweenShapes(i / rowLength - 1, i / rowLength, colDifferences, _marginTop, _marginBottom);
+                    posY += GetSpaceBetweenShapes(i / rowLength - 1, i / rowLength, colDifferences, marginTop, marginBottom);
                 }
 
                 //If last row, offset by num of indices to skip
                 if (numShapes - i == remainder)
                 {
                     differenceIndex = numIndicesToSkip;
-                    posX += GetSpaceBetweenShapes(0, differenceIndex, rowDifferences, _marginLeft, _marginRight);
+                    posX += GetSpaceBetweenShapes(0, differenceIndex, rowDifferences, marginLeft, marginRight);
                 }
 
+<<<<<<< HEAD
                 Shape currentShape = selectedShapes[i];
                 Drawing.PointF center = Graphics.GetCenterPoint(currentShape);
                 currentShape.IncrementLeft(posX - center.X);
                 currentShape.IncrementTop(posY - center.Y);
+=======
+                    Shape currentShape = selectedShapes[index];
+                    Drawing.PointF center = Graphics.GetCenterPoint(currentShape);
+                    currentShape.IncrementLeft(posX - center.X);
+                    currentShape.IncrementTop(posY - center.Y);
+                    
+                    if (differenceIndex < rowLength - 1)
+                    {
+                        posX += (rowDifferences[differenceIndex] / 2 + rowDifferences[differenceIndex + 1] / 2 + _marginLeft + _marginRight);
+                    }
+>>>>>>> 264be27e1d5e64aa79ad8b9990c35fbdb57ae994
 
-                posX += GetSpaceBetweenShapes(differenceIndex, differenceIndex + 1, rowDifferences, _marginLeft, _marginRight);
+                posX += GetSpaceBetweenShapes(differenceIndex, differenceIndex + 1, rowDifferences, marginLeft, marginRight);
                 differenceIndex++;
             }
         }
 
-        public static void DistributeGridByCol(List<Shape> selectedShapes, int rowLength, int colLength)
+        public static void DistributeGridByCol(List<Shape> selectedShapes, int rowLength, int colLength, float marginTop, float marginBottom, float marginLeft, float marginRight, int alignment)
         {
             Drawing.PointF refPoint = Graphics.GetCenterPoint(selectedShapes[0]);
 
@@ -966,7 +939,7 @@ namespace PowerPointLabs.PositionsLab
                 allShapes.Add(new PPShape(selectedShapes[i]));
             }
 
-            int numIndicesToSkip = IndicesToSkip(numShapes, colLength, _distributeGridAlignment);
+            int numIndicesToSkip = IndicesToSkip(numShapes, colLength, alignment);
 
             float[] rowDifferences = GetLongestWidthsOfRowsByCol(allShapes, rowLength, colLength, numIndicesToSkip);
             float[] colDifferences = GetLongestHeightsOfColsByCol(allShapes, rowLength, colLength, numIndicesToSkip);
@@ -981,8 +954,13 @@ namespace PowerPointLabs.PositionsLab
                 //If last index and need to skip, skip index 
                 if (numIndicesToSkip > 0 && IsLastIndexOfRow(augmentedShapeIndex, rowLength))
                 {
+<<<<<<< HEAD
                     numIndicesToSkip--;
                     augmentedShapeIndex++;
+=======
+                    differenceIndex = 0;
+                    posY += (colDifferences[i] / 2 + colDifferences[i + 1] / 2 + _marginTop + _marginBottom);
+>>>>>>> 264be27e1d5e64aa79ad8b9990c35fbdb57ae994
                 }
 
                 //If last index and no more remainder, skip the rest
@@ -990,7 +968,11 @@ namespace PowerPointLabs.PositionsLab
                 {
                     if (remainder <= 0)
                     {
+<<<<<<< HEAD
                         augmentedShapeIndex++;
+=======
+                        posX += (rowDifferences[k] / 2 + rowDifferences[k + 1] / 2 + _marginLeft + _marginRight);
+>>>>>>> 264be27e1d5e64aa79ad8b9990c35fbdb57ae994
                     }
                     else
                     {
@@ -1001,7 +983,7 @@ namespace PowerPointLabs.PositionsLab
                 if (IsFirstIndexOfRow(augmentedShapeIndex, rowLength) && augmentedShapeIndex != 0)
                 {
                     posX = refPoint.X;
-                    posY += GetSpaceBetweenShapes(augmentedShapeIndex / rowLength - 1, augmentedShapeIndex / rowLength, colDifferences, _marginTop, _marginBottom);
+                    posY += GetSpaceBetweenShapes(augmentedShapeIndex / rowLength - 1, augmentedShapeIndex / rowLength, colDifferences, marginTop, marginBottom);
                 }
 
                 Shape currentShape = selectedShapes[i];
@@ -1009,7 +991,7 @@ namespace PowerPointLabs.PositionsLab
                 currentShape.IncrementLeft(posX - center.X);
                 currentShape.IncrementTop(posY - center.Y);
 
-                posX += GetSpaceBetweenShapes(augmentedShapeIndex % rowLength, augmentedShapeIndex % rowLength + 1, rowDifferences, _marginLeft, _marginRight);
+                posX += GetSpaceBetweenShapes(augmentedShapeIndex % rowLength, augmentedShapeIndex % rowLength + 1, rowDifferences, marginLeft, marginRight);
                 augmentedShapeIndex++;
             }
         }
@@ -1359,225 +1341,5 @@ namespace PowerPointLabs.PositionsLab
         }
 
         #endregion
-
-        /// <summary>
-        ///     Method returns the internal (as opposed to bounding box) vertices of the shape.
-        /// </summary>
-        /// <param name="selectedShape">Shape to get the internal vertices</param>
-        /// <param name="currentSlide">Slide that the shape exist in</param>
-        /// <returns> 
-        ///     An array of 4 float values. They are arranged as such from left to right in the array: 
-        ///     left most, top most, right most, bottom most.
-        ///     In the event that the method fails to get the internal vertices of the shape, 
-        ///     it will return the vertices of the bounding box instead.
-        /// </returns>
-        public static float[] GetInternalVertices(Shape selectedShape, PowerPointSlide currentSlide)
-        {
-            var result = new float[4];
-
-            // Get the temp folder path for temporary storage of image
-            var folderPath = Path.GetTempPath() + @"\" + "pptlabs_positionsLab" + @"\";
-            // Create temp folder if it does not exist
-            if (!Directory.Exists(folderPath))
-            {
-                try
-                {
-                    Directory.CreateDirectory(folderPath);
-                }
-                catch (Exception)
-                {
-                    // TODO: inform user of failure to create directory
-                    // TODO: Return bounding box vertices
-                    return result;
-                }
-            }
-            var currShape = selectedShape;
-            
-            // Checks to ensure that it's possible to get internal vertices
-            if (ShapeFillsBoundingBox.Contains(currShape.AutoShapeType) ||
-                ShapeHasNoNodes.Contains(currShape.AutoShapeType) ||
-                ShapeNotSupportedForInternalVertices.Contains(currShape.AutoShapeType)||
-                currShape.Connector == MsoTriState.msoTrue)
-            {
-                // TODO: Return bounding box vertices
-                return result;
-            }
-
-            // Save the rotation of the shape. The shape's rotation is then set to 0 to facilitate
-            // importing the image into the exact position of the shape. The rotation is then
-            // applied to the imported image after importing
-            var rotationAngle = currShape.Rotation;
-            currShape.Rotation = 0;
-
-            currShape.Copy();           // DEBUG
-
-            // Export the image into the temp folder, and get the path where it is stored
-            var imagePath = ExportShape(folderPath, currShape, PpShapeFormat.ppShapeFormatEMF);
-
-            // Import the image into current slide
-            var importedImage = ImportImage(imagePath, currentSlide, currShape);
-
-            // Ungroup image to get freeform shapes within
-            var ungroupedShapes = importedImage.Ungroup();
-            
-            // Apply rotation to the image and original shape again
-            ungroupedShapes.Rotation = rotationAngle;
-            currShape.Rotation = rotationAngle;
-
-            var shapesInImage = ungroupedShapes.GroupItems;
-
-            // The freeform shape that's the boundary is always the third shape
-            var nodes = shapesInImage[3].Nodes;
-            Debug.WriteLine("Processing shape: " + currShape.Name + "'s nodes");        //DEBUG
-
-
-            var leftMost = new Drawing.PointF();
-            var topMost = new Drawing.PointF();
-            var rightMost = new Drawing.PointF();
-            var bottomMost = new Drawing.PointF();
-
-            // Initialising topMost and leftMost to the first node
-            leftMost.X = nodes[1].Points[1, 1];
-            leftMost.Y = nodes[1].Points[1, 2];
-            Debug.WriteLine("Initial left most: (" + leftMost.X + ", " + leftMost.Y + ")");     //DEBUG
-            topMost.X = nodes[1].Points[1, 1];
-            topMost.Y = nodes[1].Points[1, 2];
-            Debug.WriteLine("Initial top most: (" + topMost.X + ", " + topMost.Y + ")");        //DEBUG
-
-            // Get the co-ordinates of node in that freeform shape
-            try
-            {
-                foreach (PowerPoint.ShapeNode sn in nodes)
-                {
-                    // Works for most shapes, except for rare cases like Chords 
-                    if (sn.EditingType == MsoEditingType.msoEditingSymmetric)
-                    {
-                        continue;
-                    }
-
-                    float x = sn.Points[1, 1];
-                    float y = sn.Points[1, 2];
-
-                    Debug.WriteLine("Co-ord : (" + x + " ," + y + ")");             //DEBUG
-
-                    if (x < leftMost.X)
-                    {
-                        leftMost.X = x;
-                        leftMost.Y = y;
-                    }
-                    if (y < topMost.Y)
-                    {
-                        topMost.X = x;
-                        topMost.Y = y;
-                    }
-                    if (x > rightMost.X)
-                    {
-                        rightMost.X = x;
-                        rightMost.Y = y;
-                    }
-                    if (y > bottomMost.Y)
-                    {
-                        bottomMost.X = x;
-                        bottomMost.Y = y;
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                Debug.WriteLine("Failed to process nodes for: " + currShape.Name);
-            }
-            
-            // DEBUG
-            Debug.WriteLine("Left Most: (" + leftMost.X + ", " + leftMost.Y + ")");
-            Debug.WriteLine("Top Most: (" + topMost.X + ", " + topMost.Y + ")");
-            Debug.WriteLine("Right Most: (" + rightMost.X + ", " + rightMost.Y + ")");
-            Debug.WriteLine("Bottom Most: (" + bottomMost.X + ", " + bottomMost.Y + ")");
-
-            // DEBUG Pasting the original shape to manually check where are the extreme ends
-            var pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
-            pic.Left = leftMost.X;
-            pic.Top = leftMost.Y;
-            pic.Name = "leftMost" + Guid.NewGuid();
-
-            pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
-            pic.Left = topMost.X;
-            pic.Top = topMost.Y;
-            pic.Name = "topMost " + Guid.NewGuid();
-
-            pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
-            pic.Left = rightMost.X;
-            pic.Top = rightMost.Y;
-            pic.Name = "rightMost" + Guid.NewGuid();
-
-            pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
-            pic.Left = bottomMost.X;
-            pic.Top = bottomMost.Y;
-            pic.Name = "bottomMost" + Guid.NewGuid();
-
-            result[0] = leftMost.X;
-            result[1] = topMost.Y;
-            result[2] = rightMost.X;
-            result[3] = bottomMost.Y;
-
-            // Clean the temp directory
-            CleanTempDirectory(folderPath);
-            return result;
-        }
-
-        /// <summary>
-        /// Exports a set of shapes as one image with the specified format
-        /// </summary>
-        /// <param name="folderPath">The path where the image is to be exported to</param>
-        /// <param name="selectedShape">The selected shapes to export</param>
-        /// <param name="format">The format of image to be exported as. Should be a PpShapeFormat enum value</param>
-        private static string ExportShape(string folderPath, Shape selectedShape, PpShapeFormat format)
-        {
-            var imagePath = folderPath + "exportedImage" + DateTime.Now.GetHashCode() + "-" + Guid.NewGuid().ToString().Substring(0, 7);
-            selectedShape.Export(imagePath + ".emf", format, 1, 1);
-
-            return imagePath + ".emf";
-        }
-
-        /// <summary>
-        /// Imports an image from the specified path
-        /// </summary>
-        /// <param name="imagePath">Path where the image to be imported can be found</param>
-        /// <param name="slideToImportTo"></param>
-        /// <param name="originalShape"></param>
-        /// <returns></returns>
-        private static Shape ImportImage(string imagePath, PowerPointSlide slideToImportTo, Shape originalShape)
-        {
-            slideToImportTo.Shapes.AddPicture(imagePath, MsoTriState.msoFalse, MsoTriState.msoTrue, 0, 0);
-            var importedShape = slideToImportTo.Shapes[slideToImportTo.Shapes.Count];
-
-            Debug.WriteLine("Imported shape holding on to shape: " + importedShape.Name);
-            var originalCenter = Graphics.GetCenterPoint(originalShape);
-            var importedCenter = Graphics.GetCenterPoint(importedShape);
-
-            importedShape.IncrementLeft(originalCenter.X - importedCenter.X);
-            importedShape.IncrementTop(originalCenter.Y - importedCenter.Y);
-
-            return importedShape;
-        }
-
-        /// <summary>
-        /// Cleans the temporary directory used to store images
-        /// </summary>
-        /// <param name="folderPath">Path for the temp folder</param>
-        private static void CleanTempDirectory(string folderPath)
-        {
-            var directory = new DirectoryInfo(folderPath);
-
-            try
-            {
-                foreach (var file in directory.GetFiles()) file.Delete();
-                foreach (var subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
-            }
-            catch (Exception)
-            {
-                Debug.WriteLine("Unable to delete");
-                // ignore ex, if cannot delete trash
-            }
-        }
     }
 }

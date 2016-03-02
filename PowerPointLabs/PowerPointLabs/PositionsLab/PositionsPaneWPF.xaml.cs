@@ -32,6 +32,7 @@ namespace PowerPointLabs.PositionsLab
     /// </summary>
     public partial class PositionsPaneWPF : System.Windows.Controls.UserControl
     {
+        private PositionsDistributeGridDialog positionsDistributeGridDialog;
 
         private static LMouseUpListener _leftMouseUpListener = null;
         private static LMouseDownListener _leftMouseDownListener = null;
@@ -40,20 +41,28 @@ namespace PowerPointLabs.PositionsLab
         //Variables for lock axis
         private const int LEFT = 0;
         private const int TOP = 1;
-        private PowerPoint.ShapeRange shapesToBeMoved = null;
+        private static bool isLockAxisMode = false;
+        private static PowerPoint.ShapeRange shapesToBeMoved = null;
         private static System.Drawing.Point initialMousePos = new System.Drawing.Point();
         private float[,] initialPos;
-        private int timeCounter = 0;
+        private static int timeCounter = 0;
 
         //Variables for rotation
         private const float REFPOINT_RADIUS = 10;
+        private static bool isRotationMode = false;
         private static Shape refPoint = null;
         private static List<Shape> shapesToBeRotated = new List<Shape>();
         private static List<Shape> allShapesInSlide = new List<Shape>();
         private static System.Drawing.Point prevMousePos = new System.Drawing.Point();
 
+        //Variables for settings
+        private AlignSettingsDialog _alignSettingsDialog;
+        private DistributeSettingsDialog _distributeSettingsDialog;
+
         public PositionsPaneWPF()
         {
+            _alignSettingsDialog = new AlignSettingsDialog();
+            _distributeSettingsDialog = new DistributeSettingsDialog();
             InitializeComponent();
             dispatcherTimer.Interval = TimeSpan.FromMilliseconds(10);
         }
@@ -61,12 +70,20 @@ namespace PowerPointLabs.PositionsLab
         #region Align
         private void AlignLeftButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
             List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             PositionsLabMain.AlignLeft(selectedShapes);
         }
 
         private void AlignRightButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
             List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             float slideWidth = this.GetCurrentPresentation().SlideWidth;
             PositionsLabMain.AlignRight(selectedShapes, slideWidth);
@@ -74,12 +91,20 @@ namespace PowerPointLabs.PositionsLab
 
         private void AlignTopButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
             List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             PositionsLabMain.AlignTop(selectedShapes);
         }
 
         private void AlignBottomButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
             List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             float slideHeight = this.GetCurrentPresentation().SlideHeight;
             PositionsLabMain.AlignBottom(selectedShapes, slideHeight);
@@ -87,6 +112,10 @@ namespace PowerPointLabs.PositionsLab
 
         private void AlignMiddleButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
             List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             float slideHeight = this.GetCurrentPresentation().SlideHeight;
             PositionsLabMain.AlignMiddle(selectedShapes, slideHeight);
@@ -94,6 +123,10 @@ namespace PowerPointLabs.PositionsLab
 
         private void AlignCenterButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
             List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             float slideHeight = this.GetCurrentPresentation().SlideHeight;
             float slideWidth = this.GetCurrentPresentation().SlideWidth;
@@ -104,12 +137,20 @@ namespace PowerPointLabs.PositionsLab
         #region Adjoin
         private void AdjoinHorizontalButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
             List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             PositionsLabMain.AdjoinHorizontal(selectedShapes);
         }
 
         private void AdjoinVerticalButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
             List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             PositionsLabMain.AdjoinVertical(selectedShapes);
         }
@@ -118,6 +159,10 @@ namespace PowerPointLabs.PositionsLab
         #region Distribute
         private void DistributeHorizontalButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
             List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             float slideWidth = this.GetCurrentPresentation().SlideWidth;
             PositionsLabMain.DistributeHorizontal(selectedShapes, slideWidth);
@@ -125,6 +170,10 @@ namespace PowerPointLabs.PositionsLab
 
         private void DistributeVerticalButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
             List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             float slideHeight = this.GetCurrentPresentation().SlideHeight;
             PositionsLabMain.DistributeVertical(selectedShapes, slideHeight);
@@ -132,6 +181,10 @@ namespace PowerPointLabs.PositionsLab
 
         private void DistributeCenterButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
             List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             float slideWidth = this.GetCurrentPresentation().SlideWidth;
             float slideHeight = this.GetCurrentPresentation().SlideHeight;
@@ -140,25 +193,54 @@ namespace PowerPointLabs.PositionsLab
 
         private void DistributeShapesButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
             List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             PositionsLabMain.DistributeShapes(selectedShapes);
         }
 
         private void DistributeGridButton_Click(object sender, RoutedEventArgs e)
         {
-            
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
+            List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
+            int numShapesSelected = selectedShapes.Count;
+            int rowLength = (int)Math.Ceiling(Math.Sqrt(numShapesSelected));
+            int colLength = (int)Math.Ceiling((double)numShapesSelected / rowLength);
+
+            if (positionsDistributeGridDialog == null || !positionsDistributeGridDialog.IsOpen)
+            {
+                positionsDistributeGridDialog = new PositionsDistributeGridDialog(selectedShapes, rowLength, colLength);
+                positionsDistributeGridDialog.Show();
+            }
+            else
+            {
+                positionsDistributeGridDialog.Activate();
+            }
         }
         #endregion
 
         #region Snap
         private void SnapHorizontalButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
             List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             PositionsLabMain.SnapHorizontal(selectedShapes);
         }
 
         private void SnapVerticalButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
             List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             PositionsLabMain.SnapVertical(selectedShapes);
         }
@@ -181,6 +263,10 @@ namespace PowerPointLabs.PositionsLab
         #region Swap
         private void SwapPositionsButton_Click(object sender, RoutedEventArgs e)
         {
+            if (this.GetCurrentSelection().Type != PowerPoint.PpSelectionType.ppSelectionShapes)
+            {
+                return;
+            }
             List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             PositionsLabMain.Swap(selectedShapes);
         }
@@ -202,6 +288,13 @@ namespace PowerPointLabs.PositionsLab
             {
                 return;
             }
+
+            if (isLockAxisMode)
+            {
+                DisableLockAxisMode();
+            }
+
+            isRotationMode = true;
 
             var currentSlide = this.GetCurrentSlide();
 
@@ -261,6 +354,11 @@ namespace PowerPointLabs.PositionsLab
                 if (selectedShape == null)
                 {
                     DisableRotationMode();
+
+                    if (isLockAxisMode)
+                    {
+                        StartLockAxisMode();
+                    }
                     return;
                 }
 
@@ -270,11 +368,17 @@ namespace PowerPointLabs.PositionsLab
                 if (!isShapeToBeRotated && !isRefPoint)
                 {
                     DisableRotationMode();
+
+                    if (isLockAxisMode)
+                    {
+                        StartLockAxisMode();
+                    }
                     return;
                 }
 
                 if (isRefPoint)
                 {
+                    this.GetCurrentSelection().Unselect();
                     return;
                 }
 
@@ -289,27 +393,25 @@ namespace PowerPointLabs.PositionsLab
 
         private void LockAxis_UnChecked(object sender, RoutedEventArgs e)
         {
-            ClearAllEventHandlers();
-            shapesToBeMoved = null;
-            initialMousePos = new System.Drawing.Point();
-            timeCounter = 0;
+            DisableLockAxisMode();
+            isLockAxisMode = false;
         }
 
         private void LockAxis_Checked(object sender, RoutedEventArgs e)
         {
-            dispatcherTimer.Tick += new EventHandler(LockAxisHandler);
+            if (isRotationMode)
+            {
+                DisableRotationMode();
+            }
 
-            _leftMouseUpListener = new LMouseUpListener();
-            _leftMouseUpListener.LButtonUpClicked +=
-                new EventHandler<SysMouseEventInfo>(_leftMouseUpListener_LockAxis);
-
-            _leftMouseDownListener = new LMouseDownListener();
-            _leftMouseDownListener.LButtonDownClicked +=
-                new EventHandler<SysMouseEventInfo>(_leftMouseDownListener_LockAxis);
+            StartLockAxisMode();
+            isLockAxisMode = true;
         }
 
         private void LockAxisHandler(object sender, EventArgs e)
         {
+            //Allow mouseclick to register so that shape is selected
+            //Solves bug where old selection replaces new selection due to _leftMouseUpListener_LockAxis
             if (timeCounter < 1)
             {
                 timeCounter++;
@@ -389,7 +491,7 @@ namespace PowerPointLabs.PositionsLab
             }
             catch (Exception ex)
             {
-                Logger.LogException(ex, "Rotation");
+                Logger.LogException(ex, "LockAxis");
             }
         }
 
@@ -516,32 +618,14 @@ namespace PowerPointLabs.PositionsLab
         #endregion
 
         #region Settings
-        // Note: if changing default behavior to using slide as reference, need to ensure that
-        // checkbox for using shape is defined first in PositionsPaneWPF.xaml
-
-        // TODO: Surround with try catch in case the order of checkboxes are wrong
-        private void UseShapeAsReference(object sender, RoutedEventArgs e)
+        private void AlignSettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!slideAsReference.IsChecked.HasValue || !shapeAsReference.IsChecked.HasValue)
-            {
-                //Error
-                return;
-            }
-            slideAsReference.IsChecked = false;
-            shapeAsReference.IsChecked = true;
-            PositionsLabMain.ReferToShape();
+            _alignSettingsDialog.ShowDialog();
         }
 
-        private void UseSlideAsReference(object sender, RoutedEventArgs e)
+        private void DistributeSettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            if (!slideAsReference.IsChecked.HasValue || !shapeAsReference.IsChecked.HasValue)
-            {
-                //Error
-                return;
-            }
-            shapeAsReference.IsChecked = false;
-            slideAsReference.IsChecked = true;
-            PositionsLabMain.ReferToSlide();
+            _distributeSettingsDialog.ShowDialog();            
         }
         #endregion
 
@@ -564,10 +648,10 @@ namespace PowerPointLabs.PositionsLab
         private static void DisableRotationMode()
         {
             ClearAllEventHandlers();
+            isRotationMode = false;
 
             if (refPoint != null)
             {
-                refPoint.Delete();
                 refPoint = null;
             }
 
@@ -585,6 +669,25 @@ namespace PowerPointLabs.PositionsLab
 
                 PositionsLabMain.GetInternalVertices(s, currentSlide);
             }
+        private void StartLockAxisMode()
+        {
+            dispatcherTimer.Tick += new EventHandler(LockAxisHandler);
+
+            _leftMouseUpListener = new LMouseUpListener();
+            _leftMouseUpListener.LButtonUpClicked +=
+                new EventHandler<SysMouseEventInfo>(_leftMouseUpListener_LockAxis);
+
+            _leftMouseDownListener = new LMouseDownListener();
+            _leftMouseDownListener.LButtonDownClicked +=
+                new EventHandler<SysMouseEventInfo>(_leftMouseDownListener_LockAxis);
+        }
+
+        private static void DisableLockAxisMode()
+        {
+            ClearAllEventHandlers();
+            shapesToBeMoved = null;
+            initialMousePos = new System.Drawing.Point();
+            timeCounter = 0;
         }
     }
 }
