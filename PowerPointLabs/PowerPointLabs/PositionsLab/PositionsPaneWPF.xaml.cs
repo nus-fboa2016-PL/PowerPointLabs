@@ -578,9 +578,13 @@ namespace PowerPointLabs.PositionsLab
 
         private void TestButton_Click(object sender, RoutedEventArgs e)
         {
-            List<Shape> selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
+            var selectedShapes = ConvertShapeRangeToList(this.GetCurrentSelection().ShapeRange, 1);
             var currentSlide = this.GetCurrentSlide();
-            PositionsLabMain.TestingMethod(selectedShapes, currentSlide);
+            foreach (var s in selectedShapes)
+            {
+
+                PositionsLabMain.GetInternalVertices(s, currentSlide);
+            }
         }
     }
 }

@@ -35,6 +35,39 @@ namespace PowerPointLabs.PositionsLab
         private static Dictionary<MsoAutoShapeType, float> shapeDefaultUpAngle;
         private static bool _useSlideAsReference;
 
+        private static readonly ISet<MsoAutoShapeType> ShapeFillsBoundingBox = new HashSet<MsoAutoShapeType>
+        {
+            MsoAutoShapeType.msoShapeRectangle,
+            MsoAutoShapeType.msoShapeBevel,
+            MsoAutoShapeType.msoShapeFrame,
+            MsoAutoShapeType.msoShapeFlowchartProcess,
+            MsoAutoShapeType.msoShapeFlowchartPredefinedProcess,
+            MsoAutoShapeType.msoShapeFlowchartInternalStorage,
+            MsoAutoShapeType.msoShapeActionButtonBackorPrevious,
+            MsoAutoShapeType.msoShapeActionButtonForwardorNext,
+            MsoAutoShapeType.msoShapeActionButtonBeginning,
+            MsoAutoShapeType.msoShapeActionButtonEnd,
+            MsoAutoShapeType.msoShapeActionButtonHome,
+            MsoAutoShapeType.msoShapeActionButtonInformation,
+            MsoAutoShapeType.msoShapeActionButtonReturn,
+            MsoAutoShapeType.msoShapeActionButtonMovie,
+            MsoAutoShapeType.msoShapeActionButtonDocument,
+            MsoAutoShapeType.msoShapeActionButtonSound,
+            MsoAutoShapeType.msoShapeActionButtonHelp,
+            MsoAutoShapeType.msoShapeActionButtonCustom
+        }; 
+
+        private static readonly ISet<MsoAutoShapeType> ShapeHasNoNodes = new HashSet<MsoAutoShapeType>()
+        {
+            MsoAutoShapeType.msoShapeOval
+        }; 
+
+        private static readonly ISet<MsoAutoShapeType> ShapeNotSupportedForInternalVertices = new HashSet<MsoAutoShapeType>
+        {
+            MsoAutoShapeType.msoShapeChord,
+            MsoAutoShapeType.msoShapeHeart
+        }; 
+
         #region API
 
         #region Class Methods
@@ -965,183 +998,168 @@ namespace PowerPointLabs.PositionsLab
 
         #endregion
 
-        public static void TestingMethod(List<Shape> selectedShapes, PowerPointSlide currentSlide)
+        /// <summary>
+        ///     Method returns the internal (as opposed to bounding box) vertices of the shape.
+        /// </summary>
+        /// <param name="selectedShape">Shape to get the internal vertices</param>
+        /// <param name="currentSlide">Slide that the shape exist in</param>
+        /// <returns> 
+        ///     An array of 4 float values. They are arranged as such from left to right in the array: 
+        ///     left most, top most, right most, bottom most.
+        ///     In the event that the method fails to get the internal vertices of the shape, 
+        ///     it will return the vertices of the bounding box instead.
+        /// </returns>
+        public static float[] GetInternalVertices(Shape selectedShape, PowerPointSlide currentSlide)
         {
-            // Get the temp folder path for temporary storage of image
-            String folderPath = Path.GetTempPath() + @"\" + "pptlabs_positionsLab" + @"\";
+            var result = new float[4];
 
+            // Get the temp folder path for temporary storage of image
+            var folderPath = Path.GetTempPath() + @"\" + "pptlabs_positionsLab" + @"\";
             // Create temp folder if it does not exist
-            // TODO: Wrap in try-catch block
             if (!Directory.Exists(folderPath))
             {
-                Directory.CreateDirectory(folderPath);
-            }
-
-            // Iterate through all currently selected shape to get their vertices
-            foreach (Shape currShape in selectedShapes)
-            {
-                // Eliminate shapes that fills up bounding box or has no nodes
-                // TODO: Create a list of shape that fills up bounding box, and check against that
-                if (currShape.AutoShapeType == MsoAutoShapeType.msoShapeRectangle)
-                {
-                    Debug.WriteLine("Detected rectangle");
-                    continue;
-                }
-
-                if (currShape.AutoShapeType == MsoAutoShapeType.msoShapeOval)
-                {
-                    Debug.WriteLine("Detected oval");
-                    continue;
-                }
-
-                var rotationAngle = currShape.Rotation;
-                currShape.Rotation = 0;
-                
-                currShape.Copy();
-
-                // Export the image into the temp folder, and get the path where it is stored
-                String imagePath = ExportShape(folderPath, currShape, PpShapeFormat.ppShapeFormatEMF);
-
-                // Import the image into current slide
-                var importedImage = ImportImage(imagePath, currentSlide, currShape);
-
-                // Ungroup image to get freeform shapes within
-                var ungroupedShapes = importedImage.Ungroup();
-                ungroupedShapes.Rotation = rotationAngle;
-                currShape.Rotation = rotationAngle;
-                var shapesInImage = ungroupedShapes.GroupItems;
-
-                #region using Nodes to get coordinates
-                // The freeform shape that's the boundary is always the third shape
-                var nodes = shapesInImage[3].Nodes;
-                Debug.WriteLine("Processing shape: " + currShape.Name + "'s nodes");
-
-
-                Drawing.PointF leftMost = new Drawing.PointF();
-                Drawing.PointF topMost = new Drawing.PointF();
-                Drawing.PointF rightMost = new Drawing.PointF();
-                Drawing.PointF bottomMost = new Drawing.PointF();
-
-                // Initialising topMost and leftMost to the first node
-                leftMost.X = nodes[1].Points[1, 1];
-                leftMost.Y = nodes[1].Points[1, 2];
-                Debug.WriteLine("Initial left most: (" + leftMost.X + ", " + leftMost.Y + ")");
-                topMost.X = nodes[1].Points[1, 1];
-                topMost.Y = nodes[1].Points[1, 2];
-                Debug.WriteLine("Initial top most: (" + topMost.X + ", " + topMost.Y + ")");
-
-                // Get the co-ordinates of node in that freeform shape
                 try
                 {
-                    foreach (PowerPoint.ShapeNode sn in nodes)
-                    {
-
-                        // Works for most shapes, except for weirdos like Chords 
-                        if (sn.EditingType == MsoEditingType.msoEditingSymmetric)
-                        {
-                            continue;
-                        }
-                        
-                        float x = sn.Points[1, 1];
-                        float y = sn.Points[1, 2];
-
-                        Debug.WriteLine("Co-ord : (" + x + " ," + y + ")");
-
-                        // Check left most
-                        if (x < leftMost.X)
-                        {
-                            leftMost.X = x;
-                            leftMost.Y = y;
-                            Debug.WriteLine("new left most: (" + leftMost.X + ", " + leftMost.Y + ")");
-                        }
-
-                        // Check top most
-                        if (y < topMost.Y)
-                        {
-                            topMost.X = x;
-                            topMost.Y = y;
-                        }
-
-                        // Check for right most
-                        if (x > rightMost.X)
-                        {
-                            rightMost.X = x;
-                            rightMost.Y = y;
-                        }
-
-                        // Check bottom most
-                        if (y > bottomMost.Y)
-                        {
-                            bottomMost.X = x;
-                            bottomMost.Y = y;
-                        }
-                    }
+                    Directory.CreateDirectory(folderPath);
                 }
                 catch (Exception)
                 {
-                    Debug.WriteLine("Failed to process nodes for: " + currShape.Name);
+                    // TODO: inform user of failure to create directory
+                    // TODO: Return bounding box vertices
+                    return result;
                 }
-
-                Debug.WriteLine("Left Most: (" + leftMost.X + ", " + leftMost.Y + ")");
-                Debug.WriteLine("Top Most: (" + topMost.X + ", " + topMost.Y + ")");
-                Debug.WriteLine("Right Most: (" + rightMost.X + ", " + rightMost.Y + ")");
-                Debug.WriteLine("Bottom Most: (" + bottomMost.X + ", " + bottomMost.Y + ")");
-
-                // Pasting the original shape to manually check where are the extreme ends
-                var pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PowerPoint.PpPasteDataType.ppPastePNG)[1];
-                pic.Left = leftMost.X;
-                pic.Top = leftMost.Y;
-                pic.Name = "leftMost" + Guid.NewGuid();
-
-                pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PowerPoint.PpPasteDataType.ppPastePNG)[1];
-                pic.Left = topMost.X;
-                pic.Top = topMost.Y;
-                pic.Name = "topMost " + Guid.NewGuid();
-
-                pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PowerPoint.PpPasteDataType.ppPastePNG)[1];
-                pic.Left = rightMost.X;
-                pic.Top = rightMost.Y;
-                pic.Name = "rightMost" + Guid.NewGuid();
-
-                pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PowerPoint.PpPasteDataType.ppPastePNG)[1];
-                pic.Left = bottomMost.X;
-                pic.Top = bottomMost.Y;
-                pic.Name = "bottomMost" + Guid.NewGuid();
-
-                #endregion
-
-                #region using vertices for coordinates
-                //// Using vertices instead of nodes of the freeform shape to get coordinates
-                //var vertices = shapesInImage[3].Vertices;
-                //Debug.WriteLine("Processing shape: " + currShape.Name + "'s vertices");
-
-                //try
-                //{
-                //    var vertexCount = vertices.Length;
-                //    for (int i = 1; i < vertexCount/2; i++)
-                //    {
-                //        double x = vertices[i, 1];
-                //        double y = vertices[i, 2];
-                //        Debug.WriteLine("Co-ord: (" + x + "," + y + ")");
-
-                //        // Pasting the original shape to manually check where are the nodes
-                //        var pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PowerPoint.PpPasteDataType.ppPastePNG)[1];
-                //        pic.Left = (float)x;
-                //        pic.Top = (float)y;
-                //        pic.Select();
-                //    }
-
-                //}
-                //catch (Exception)
-                //{
-                //    Debug.WriteLine("Failed to process vertices for: " + currShape.Name);
-                //}
-                #endregion
-
             }
+            var currShape = selectedShape;
+            
+            // Checks to ensure that it's possible to get internal vertices
+            if (ShapeFillsBoundingBox.Contains(currShape.AutoShapeType) ||
+                ShapeHasNoNodes.Contains(currShape.AutoShapeType) ||
+                ShapeNotSupportedForInternalVertices.Contains(currShape.AutoShapeType)||
+                currShape.Connector == MsoTriState.msoTrue)
+            {
+                // TODO: Return bounding box vertices
+                return result;
+            }
+
+            // Save the rotation of the shape. The shape's rotation is then set to 0 to facilitate
+            // importing the image into the exact position of the shape. The rotation is then
+            // applied to the imported image after importing
+            var rotationAngle = currShape.Rotation;
+            currShape.Rotation = 0;
+
+            currShape.Copy();           // DEBUG
+
+            // Export the image into the temp folder, and get the path where it is stored
+            var imagePath = ExportShape(folderPath, currShape, PpShapeFormat.ppShapeFormatEMF);
+
+            // Import the image into current slide
+            var importedImage = ImportImage(imagePath, currentSlide, currShape);
+
+            // Ungroup image to get freeform shapes within
+            var ungroupedShapes = importedImage.Ungroup();
+            
+            // Apply rotation to the image and original shape again
+            ungroupedShapes.Rotation = rotationAngle;
+            currShape.Rotation = rotationAngle;
+
+            var shapesInImage = ungroupedShapes.GroupItems;
+
+            // The freeform shape that's the boundary is always the third shape
+            var nodes = shapesInImage[3].Nodes;
+            Debug.WriteLine("Processing shape: " + currShape.Name + "'s nodes");        //DEBUG
+
+
+            var leftMost = new Drawing.PointF();
+            var topMost = new Drawing.PointF();
+            var rightMost = new Drawing.PointF();
+            var bottomMost = new Drawing.PointF();
+
+            // Initialising topMost and leftMost to the first node
+            leftMost.X = nodes[1].Points[1, 1];
+            leftMost.Y = nodes[1].Points[1, 2];
+            Debug.WriteLine("Initial left most: (" + leftMost.X + ", " + leftMost.Y + ")");     //DEBUG
+            topMost.X = nodes[1].Points[1, 1];
+            topMost.Y = nodes[1].Points[1, 2];
+            Debug.WriteLine("Initial top most: (" + topMost.X + ", " + topMost.Y + ")");        //DEBUG
+
+            // Get the co-ordinates of node in that freeform shape
+            try
+            {
+                foreach (PowerPoint.ShapeNode sn in nodes)
+                {
+                    // Works for most shapes, except for rare cases like Chords 
+                    if (sn.EditingType == MsoEditingType.msoEditingSymmetric)
+                    {
+                        continue;
+                    }
+
+                    float x = sn.Points[1, 1];
+                    float y = sn.Points[1, 2];
+
+                    Debug.WriteLine("Co-ord : (" + x + " ," + y + ")");             //DEBUG
+
+                    if (x < leftMost.X)
+                    {
+                        leftMost.X = x;
+                        leftMost.Y = y;
+                    }
+                    if (y < topMost.Y)
+                    {
+                        topMost.X = x;
+                        topMost.Y = y;
+                    }
+                    if (x > rightMost.X)
+                    {
+                        rightMost.X = x;
+                        rightMost.Y = y;
+                    }
+                    if (y > bottomMost.Y)
+                    {
+                        bottomMost.X = x;
+                        bottomMost.Y = y;
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                Debug.WriteLine("Failed to process nodes for: " + currShape.Name);
+            }
+            
+            // DEBUG
+            Debug.WriteLine("Left Most: (" + leftMost.X + ", " + leftMost.Y + ")");
+            Debug.WriteLine("Top Most: (" + topMost.X + ", " + topMost.Y + ")");
+            Debug.WriteLine("Right Most: (" + rightMost.X + ", " + rightMost.Y + ")");
+            Debug.WriteLine("Bottom Most: (" + bottomMost.X + ", " + bottomMost.Y + ")");
+
+            // DEBUG Pasting the original shape to manually check where are the extreme ends
+            var pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
+            pic.Left = leftMost.X;
+            pic.Top = leftMost.Y;
+            pic.Name = "leftMost" + Guid.NewGuid();
+
+            pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
+            pic.Left = topMost.X;
+            pic.Top = topMost.Y;
+            pic.Name = "topMost " + Guid.NewGuid();
+
+            pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
+            pic.Left = rightMost.X;
+            pic.Top = rightMost.Y;
+            pic.Name = "rightMost" + Guid.NewGuid();
+
+            pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
+            pic.Left = bottomMost.X;
+            pic.Top = bottomMost.Y;
+            pic.Name = "bottomMost" + Guid.NewGuid();
+
+            result[0] = leftMost.X;
+            result[1] = topMost.Y;
+            result[2] = rightMost.X;
+            result[3] = bottomMost.Y;
 
             // Clean the temp directory
             CleanTempDirectory(folderPath);
+            return result;
         }
 
         /// <summary>
@@ -1150,10 +1168,10 @@ namespace PowerPointLabs.PositionsLab
         /// <param name="folderPath">The path where the image is to be exported to</param>
         /// <param name="selectedShape">The selected shapes to export</param>
         /// <param name="format">The format of image to be exported as. Should be a PpShapeFormat enum value</param>
-        private static String ExportShape(String folderPath, Shape selectedShape, PpShapeFormat format)
+        private static string ExportShape(string folderPath, Shape selectedShape, PpShapeFormat format)
         {
             var imagePath = folderPath + "exportedImage" + DateTime.Now.GetHashCode() + "-" + Guid.NewGuid().ToString().Substring(0, 7);
-            selectedShape.Export(imagePath + ".emf", format, 1, 1, PpExportMode.ppRelativeToSlide);
+            selectedShape.Export(imagePath + ".emf", format, 1, 1);
 
             return imagePath + ".emf";
         }
@@ -1162,15 +1180,17 @@ namespace PowerPointLabs.PositionsLab
         /// Imports an image from the specified path
         /// </summary>
         /// <param name="imagePath">Path where the image to be imported can be found</param>
+        /// <param name="slideToImportTo"></param>
+        /// <param name="originalShape"></param>
         /// <returns></returns>
-        private static Shape ImportImage(String imagePath, PowerPointSlide slideToImportTo, Shape originalShape)
+        private static Shape ImportImage(string imagePath, PowerPointSlide slideToImportTo, Shape originalShape)
         {
             slideToImportTo.Shapes.AddPicture(imagePath, MsoTriState.msoFalse, MsoTriState.msoTrue, 0, 0);
-            Shape importedShape = slideToImportTo.Shapes[slideToImportTo.Shapes.Count];
+            var importedShape = slideToImportTo.Shapes[slideToImportTo.Shapes.Count];
 
             Debug.WriteLine("Imported shape holding on to shape: " + importedShape.Name);
-            Drawing.PointF originalCenter = Graphics.GetCenterPoint(originalShape);
-            Drawing.PointF importedCenter = Graphics.GetCenterPoint(importedShape);
+            var originalCenter = Graphics.GetCenterPoint(originalShape);
+            var importedCenter = Graphics.GetCenterPoint(importedShape);
 
             importedShape.IncrementLeft(originalCenter.X - importedCenter.X);
             importedShape.IncrementTop(originalCenter.Y - importedCenter.Y);
@@ -1182,14 +1202,14 @@ namespace PowerPointLabs.PositionsLab
         /// Cleans the temporary directory used to store images
         /// </summary>
         /// <param name="folderPath">Path for the temp folder</param>
-        private static void CleanTempDirectory(String folderPath)
+        private static void CleanTempDirectory(string folderPath)
         {
             var directory = new DirectoryInfo(folderPath);
 
             try
             {
-                foreach (FileInfo file in directory.GetFiles()) file.Delete();
-                foreach (DirectoryInfo subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
+                foreach (var file in directory.GetFiles()) file.Delete();
+                foreach (var subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
             }
             catch (Exception)
             {
