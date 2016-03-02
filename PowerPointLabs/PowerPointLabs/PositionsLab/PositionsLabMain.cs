@@ -994,6 +994,11 @@ namespace PowerPointLabs.PositionsLab
                     continue;
                 }
 
+                var rotationAngle = currShape.Rotation;
+                currShape.Rotation = 0;
+                
+                currShape.Copy();
+
                 // Export the image into the temp folder, and get the path where it is stored
                 String imagePath = ExportShape(folderPath, currShape, PpShapeFormat.ppShapeFormatEMF);
 
@@ -1002,6 +1007,8 @@ namespace PowerPointLabs.PositionsLab
 
                 // Ungroup image to get freeform shapes within
                 var ungroupedShapes = importedImage.Ungroup();
+                ungroupedShapes.Rotation = rotationAngle;
+                currShape.Rotation = rotationAngle;
                 var shapesInImage = ungroupedShapes.GroupItems;
 
                 // The freeform shape that's the bondary is always the third shape
@@ -1016,6 +1023,12 @@ namespace PowerPointLabs.PositionsLab
                         double x = sn.Points[1, 1];
                         double y = sn.Points[1, 2];
                         Debug.WriteLine("Co-ord : (" + x + " ," + y + ")");
+
+                        // Pasting the original shape to manually check where are the nodes
+                        var pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PowerPoint.PpPasteDataType.ppPastePNG)[1];
+                        pic.Left = (float) x;
+                        pic.Top = (float) y;
+                        pic.Select();]
                     }
                 }
                 catch (Exception)
@@ -1051,13 +1064,14 @@ namespace PowerPointLabs.PositionsLab
         {
             slideToImportTo.Shapes.AddPicture(imagePath, MsoTriState.msoFalse, MsoTriState.msoTrue, 0, 0);
             Shape importedShape = slideToImportTo.Shapes[slideToImportTo.Shapes.Count];
+
             Debug.WriteLine("Imported shape holding on to shape: " + importedShape.Name);
             Drawing.PointF originalCenter = Graphics.GetCenterPoint(originalShape);
             Drawing.PointF importedCenter = Graphics.GetCenterPoint(importedShape);
 
             importedShape.IncrementLeft(originalCenter.X - importedCenter.X);
             importedShape.IncrementTop(originalCenter.Y - importedCenter.Y);
-            
+
             return importedShape;
         }
 
@@ -1072,7 +1086,6 @@ namespace PowerPointLabs.PositionsLab
             try
             {
                 foreach (FileInfo file in directory.GetFiles()) file.Delete();
-                Debug.WriteLine("deleted");
                 foreach (DirectoryInfo subDirectory in directory.GetDirectories()) subDirectory.Delete(true);
             }
             catch (Exception)
