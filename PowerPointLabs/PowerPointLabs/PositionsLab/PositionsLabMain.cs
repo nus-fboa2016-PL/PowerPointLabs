@@ -1494,22 +1494,22 @@ namespace PowerPointLabs.PositionsLab
             Debug.WriteLine("Bottom Most: (" + bottomMost.X + ", " + bottomMost.Y + ")");
 
             // DEBUG Pasting the original shape to manually check where are the extreme ends
-            var pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
+            var pic = currentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
             pic.Left = leftMost.X;
             pic.Top = leftMost.Y;
             pic.Name = "leftMost" + Guid.NewGuid();
 
-            pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
+            pic = currentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
             pic.Left = topMost.X;
             pic.Top = topMost.Y;
             pic.Name = "topMost " + Guid.NewGuid();
 
-            pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
+            pic = currentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
             pic.Left = rightMost.X;
             pic.Top = rightMost.Y;
             pic.Name = "rightMost" + Guid.NewGuid();
 
-            pic = PowerPointCurrentPresentationInfo.CurrentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
+            pic = currentSlide.Shapes.PasteSpecial(PpPasteDataType.ppPastePNG)[1];
             pic.Left = bottomMost.X;
             pic.Top = bottomMost.Y;
             pic.Name = "bottomMost" + Guid.NewGuid();

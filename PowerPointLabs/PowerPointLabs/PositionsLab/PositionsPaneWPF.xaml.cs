@@ -669,6 +669,8 @@ namespace PowerPointLabs.PositionsLab
 
                 PositionsLabMain.GetInternalVertices(s, currentSlide);
             }
+        }
+
         private void StartLockAxisMode()
         {
             dispatcherTimer.Tick += new EventHandler(LockAxisHandler);
