@@ -1,26 +1,15 @@
 ﻿using MahApps.Metro.Controls;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Shape = Microsoft.Office.Interop.PowerPoint.Shape;
-using System.Diagnostics;
 
 namespace PowerPointLabs.PositionsLab
 {
     /// <summary>
     /// Interaction logic for PositionsDistributeGridDialog.xaml
     /// </summary>
-    public partial class PositionsDistributeGridDialog : MetroWindow
+    public partial class PositionsDistributeGridDialog
     {
         //Flag to trigger
         public bool IsOpen { get; set; }
@@ -70,7 +59,7 @@ namespace PowerPointLabs.PositionsLab
                 return;
             }
 
-            int col = (int)Math.Ceiling(_numShapesSelected / value.GetValueOrDefault());
+            var col = (int)Math.Ceiling(_numShapesSelected / value.GetValueOrDefault());
             _colInput.Value = col;
         }
 
@@ -88,7 +77,7 @@ namespace PowerPointLabs.PositionsLab
                 return;
             }
 
-            int row = (int)Math.Ceiling(_numShapesSelected / value.GetValueOrDefault());
+            var row = (int)Math.Ceiling(_numShapesSelected / value.GetValueOrDefault());
             _rowInput.Value = row;
         }
 
@@ -110,12 +99,12 @@ namespace PowerPointLabs.PositionsLab
             
             PositionsLabMain.DistributeGrid(_selectedShapes, (int)colValue, (int)rowValue);
 
-            this.Close();
+            Close();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            Close();
         }
     }
 }

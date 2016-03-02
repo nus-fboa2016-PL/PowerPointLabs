@@ -1,17 +1,6 @@
 ﻿using MahApps.Metro.Controls;
-using Microsoft.Office.Interop.PowerPoint;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 
 namespace PowerPointLabs.PositionsLab
 {
@@ -104,25 +93,25 @@ namespace PowerPointLabs.PositionsLab
 
             if (_alignLeftButton.IsChecked.GetValueOrDefault())
             {
-                PositionsLabMain.SetDistributeGridAlignment(PositionsLabMain.ALIGN_LEFT);
+                PositionsLabMain.SetDistributeGridAlignment(PositionsLabMain.GridAlignment.AlignLeft);
             }
 
             if (_alignCenterButton.IsChecked.GetValueOrDefault())
             {
-                PositionsLabMain.SetDistributeGridAlignment(PositionsLabMain.ALIGN_CENTER);
+                PositionsLabMain.SetDistributeGridAlignment(PositionsLabMain.GridAlignment.AlignCenter);
             }
 
             if (_alignRightButton.IsChecked.GetValueOrDefault())
             {
-                PositionsLabMain.SetDistributeGridAlignment(PositionsLabMain.ALIGN_RIGHT);
+                PositionsLabMain.SetDistributeGridAlignment(PositionsLabMain.GridAlignment.AlignRight);
             }
 
-            this.Hide();
+            Hide();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            this.Hide();
+            Hide();
         }
 
         private void DistributeToShapeButton_Click(object sender, RoutedEventArgs e)
