@@ -14,7 +14,6 @@ namespace PowerPointLabs.PositionsLab
 {
     class PositionsLabMain
     {
-        private static bool _isInit;
         private const float Epsilon = 0.00001f;
         private const float RotateLeft = 90f;
         private const float RotateRight = 270f;
@@ -40,15 +39,15 @@ namespace PowerPointLabs.PositionsLab
             AlignRight
         }
 
-        private static GridAlignment _distributeGridAlignment;
-        private static float _marginTop = 5;
-        private static float _marginBottom = 5;
-        private static float _marginLeft = 5;
-        private static float _marginRight = 5;
+        public static GridAlignment DistributeGridAlignment { get; private set; }
+        public static float MarginTop { get; private set; }
+        public static float MarginBottom { get; private set; }
+        public static float MarginLeft { get; private set; }
+        public static float MarginRight { get; private set; }
 
         private static Dictionary<MsoAutoShapeType, float> shapeDefaultUpAngle;
-        private static bool _alignUseSlideAsReference = false;
-        private static bool _distributeUseSlideAsReference = false;
+        public static bool AlignUseSlideAsReference { get; private set; }
+        public static bool DistributeUseSlideAsReference { get; private set; }
 
         private static readonly ISet<MsoAutoShapeType> ShapeFillsBoundingBox = new HashSet<MsoAutoShapeType>
         {
@@ -92,7 +91,7 @@ namespace PowerPointLabs.PositionsLab
         /// </summary>
         public static void AlignReferToSlide()
         {
-            _alignUseSlideAsReference = true;
+            AlignUseSlideAsReference = true;
         }
 
         /// <summary>
@@ -100,7 +99,7 @@ namespace PowerPointLabs.PositionsLab
         /// </summary>
         public static void AlignReferToShape()
         {
-            _alignUseSlideAsReference = false;
+            AlignUseSlideAsReference = false;
         }
 
         /// <summary>
@@ -108,7 +107,7 @@ namespace PowerPointLabs.PositionsLab
         /// </summary>
         public static void DistributeReferToSlide()
         {
-            _distributeUseSlideAsReference = true;
+            DistributeUseSlideAsReference = true;
         }
 
         /// <summary>
@@ -116,32 +115,32 @@ namespace PowerPointLabs.PositionsLab
         /// </summary>
         public static void DistributeReferToShape()
         {
-            _distributeUseSlideAsReference = false;
+            DistributeUseSlideAsReference = false;
         }
 
         public static void SetDistributeGridAlignment(GridAlignment alignment)
         {
-            _distributeGridAlignment = alignment;
+            DistributeGridAlignment = alignment;
         }
 
         public static void SetDistributeMarginTop (float marginTop)
         {
-            _marginTop = marginTop;
+            MarginTop = marginTop;
         }
 
         public static void SetDistributeMarginBottom(float marginBottom)
         {
-            _marginBottom = marginBottom;
+            MarginBottom = marginBottom;
         }
 
         public static void SetDistributeMarginLeft(float marginLeft)
         {
-            _marginLeft = marginLeft;
+            MarginLeft = marginLeft;
         }
 
         public static void SetDistributeMarginRight(float marginRight)
         {
-            _marginRight = marginRight;
+            MarginRight = marginRight;
         }
 
         #endregion
@@ -149,7 +148,7 @@ namespace PowerPointLabs.PositionsLab
         #region Align
         public static void AlignLeft(List<Shape> selectedShapes)
         {
-            if (_alignUseSlideAsReference)
+            if (AlignUseSlideAsReference)
             {
                 foreach (var s in selectedShapes)
                 {
@@ -181,7 +180,7 @@ namespace PowerPointLabs.PositionsLab
 
         public static void AlignRight(List<Shape> selectedShapes, float slideWidth)
         {
-            if (_alignUseSlideAsReference)
+            if (AlignUseSlideAsReference)
             {
                 foreach (var s in selectedShapes)
                 {
@@ -214,7 +213,7 @@ namespace PowerPointLabs.PositionsLab
 
         public static void AlignTop(List<Shape> selectedShapes)
         {
-            if (_alignUseSlideAsReference)
+            if (AlignUseSlideAsReference)
             {
                 foreach (var s in selectedShapes)
                 {
@@ -246,7 +245,7 @@ namespace PowerPointLabs.PositionsLab
 
         public static void AlignBottom(List<Shape> selectedShapes, float slideHeight)
         {
-            if (_alignUseSlideAsReference)
+            if (AlignUseSlideAsReference)
             {
                 foreach (var s in selectedShapes)
                 {
@@ -279,7 +278,7 @@ namespace PowerPointLabs.PositionsLab
 
         public static void AlignMiddle(List<Shape> selectedShapes, float slideHeight)
         {
-            if (_alignUseSlideAsReference)
+            if (AlignUseSlideAsReference)
             {
                 foreach (var s in selectedShapes)
                 {
@@ -310,7 +309,7 @@ namespace PowerPointLabs.PositionsLab
 
         public static void AlignCenter(List<Shape> selectedShapes, float slideWidth, float slideHeight)
         {
-            if (_alignUseSlideAsReference)
+            if (AlignUseSlideAsReference)
             {
                 foreach (var s in selectedShapes)
                 {
@@ -348,12 +347,6 @@ namespace PowerPointLabs.PositionsLab
         #region Snap
         public static void SnapVertical(List<Shape> selectedShapes)
         {
-            if (!_isInit)
-            {
-                Init();
-                _isInit = true;
-            }
-
             foreach (var s in selectedShapes)
             {
                 SnapShapeVertical(s);
@@ -362,12 +355,6 @@ namespace PowerPointLabs.PositionsLab
 
         public static void SnapHorizontal(List<Shape> selectedShapes)
         {
-            if (!_isInit)
-            {
-                Init();
-                _isInit = true;
-            }
-
             foreach (var s in selectedShapes)
             {
                 SnapShapeHorizontal(s);
@@ -376,12 +363,6 @@ namespace PowerPointLabs.PositionsLab
 
         public static void SnapAway(List<Shape> shapes)
         {
-            if (!_isInit)
-            {
-                Init();
-                _isInit = true;
-            }
-
             if (shapes.Count < 2)
             {
                 throw new Exception(ErrorMessageFewerThanTwoSelection);
@@ -636,7 +617,7 @@ namespace PowerPointLabs.PositionsLab
             var allPointsOfRef = Graphics.GetRealCoordinates(refShape);
             Drawing.PointF rightMostRef;
 
-            if (_distributeUseSlideAsReference)
+            if (DistributeUseSlideAsReference)
             {
                 var horizontalDistanceInRef = slideWidth;
                 var spaceBetweenShapes = horizontalDistanceInRef;
@@ -722,7 +703,7 @@ namespace PowerPointLabs.PositionsLab
             var allPointsOfRef = Graphics.GetRealCoordinates(refShape);
             Drawing.PointF lowestRef;
 
-            if (_distributeUseSlideAsReference)
+            if (DistributeUseSlideAsReference)
             {
                 var verticalDistanceInRef = slideHeight;
                 var spaceBetweenShapes = verticalDistanceInRef;
@@ -908,7 +889,7 @@ namespace PowerPointLabs.PositionsLab
                 allShapes.Add(new PPShape(selectedShapes[i]));
             }
 
-            var numIndicesToSkip = IndicesToSkip(numShapes, rowLength, _distributeGridAlignment);
+            var numIndicesToSkip = IndicesToSkip(numShapes, rowLength, DistributeGridAlignment);
 
             var rowDifferences = GetLongestWidthsOfRowsByRow(allShapes, rowLength, numIndicesToSkip);
             var colDifferences = GetLongestHeightsOfColsByRow(allShapes, rowLength, colLength);
@@ -925,14 +906,14 @@ namespace PowerPointLabs.PositionsLab
                 {
                     posX = refPoint.X;
                     differenceIndex = 0;
-                    posY += GetSpaceBetweenShapes(i / rowLength - 1, i / rowLength, colDifferences, _marginTop, _marginBottom);
+                    posY += GetSpaceBetweenShapes(i / rowLength - 1, i / rowLength, colDifferences, MarginTop, MarginBottom);
                 }
 
                 //If last row, offset by num of indices to skip
                 if (numShapes - i == remainder)
                 {
                     differenceIndex = numIndicesToSkip;
-                    posX += GetSpaceBetweenShapes(0, differenceIndex, rowDifferences, _marginLeft, _marginRight);
+                    posX += GetSpaceBetweenShapes(0, differenceIndex, rowDifferences, MarginLeft, MarginRight);
                 }
 
                 var currentShape = selectedShapes[i];
@@ -940,7 +921,7 @@ namespace PowerPointLabs.PositionsLab
                 currentShape.IncrementLeft(posX - center.X);
                 currentShape.IncrementTop(posY - center.Y);
 
-                posX += GetSpaceBetweenShapes(differenceIndex, differenceIndex + 1, rowDifferences, _marginLeft, _marginRight);
+                posX += GetSpaceBetweenShapes(differenceIndex, differenceIndex + 1, rowDifferences, MarginLeft, MarginRight);
                 differenceIndex++;
             }
         }
@@ -957,7 +938,7 @@ namespace PowerPointLabs.PositionsLab
                 allShapes.Add(new PPShape(selectedShapes[i]));
             }
 
-            var numIndicesToSkip = IndicesToSkip(numShapes, colLength, _distributeGridAlignment);
+            var numIndicesToSkip = IndicesToSkip(numShapes, colLength, DistributeGridAlignment);
 
             var rowDifferences = GetLongestWidthsOfRowsByCol(allShapes, rowLength, colLength, numIndicesToSkip);
             var colDifferences = GetLongestHeightsOfColsByCol(allShapes, rowLength, colLength, numIndicesToSkip);
@@ -992,7 +973,7 @@ namespace PowerPointLabs.PositionsLab
                 if (IsFirstIndexOfRow(augmentedShapeIndex, rowLength) && augmentedShapeIndex != 0)
                 {
                     posX = refPoint.X;
-                    posY += GetSpaceBetweenShapes(augmentedShapeIndex / rowLength - 1, augmentedShapeIndex / rowLength, colDifferences, _marginTop, _marginBottom);
+                    posY += GetSpaceBetweenShapes(augmentedShapeIndex / rowLength - 1, augmentedShapeIndex / rowLength, colDifferences, MarginTop, MarginBottom);
                 }
 
                 var currentShape = selectedShapes[i];
@@ -1000,7 +981,7 @@ namespace PowerPointLabs.PositionsLab
                 currentShape.IncrementLeft(posX - center.X);
                 currentShape.IncrementTop(posY - center.Y);
 
-                posX += GetSpaceBetweenShapes(augmentedShapeIndex % rowLength, augmentedShapeIndex % rowLength + 1, rowDifferences, _marginLeft, _marginRight);
+                posX += GetSpaceBetweenShapes(augmentedShapeIndex % rowLength, augmentedShapeIndex % rowLength + 1, rowDifferences, MarginLeft, MarginRight);
                 augmentedShapeIndex++;
             }
         }
@@ -1313,7 +1294,7 @@ namespace PowerPointLabs.PositionsLab
             return difference;
         }
 
-        private static void Init()
+        private static void InitDefaultShapesAngles()
         {
             shapeDefaultUpAngle = new Dictionary<MsoAutoShapeType, float>();
 
@@ -1345,6 +1326,28 @@ namespace PowerPointLabs.PositionsLab
             shapeDefaultUpAngle.Add(AutoShape.msoShapeDownArrowCallout, RotateDown);
             shapeDefaultUpAngle.Add(AutoShape.msoShapeCurvedDownArrow, RotateDown);
             shapeDefaultUpAngle.Add(AutoShape.msoShapeCircularArrow, RotateDown);
+        }
+
+        private static void InitDefaultDistributeSettings()
+        {
+            MarginTop = 5;
+            MarginBottom = 5;
+            MarginLeft = 5;
+            MarginRight = 5;
+            DistributeGridAlignment = GridAlignment.AlignLeft;
+            DistributeUseSlideAsReference = false;
+        }
+
+        private static void InitAlignSettings()
+        {
+            AlignUseSlideAsReference = false;
+        }
+
+        public static void InitPositionsLab()
+        {
+            InitDefaultShapesAngles();
+            InitDefaultDistributeSettings();
+            InitAlignSettings();
         }
 
         #endregion
