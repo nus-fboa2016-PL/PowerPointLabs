@@ -1511,6 +1511,9 @@ namespace PowerPointLabs.PositionsLab
             result[2] = rightMost.X;
             result[3] = bottomMost.Y;
 
+            // Clean the slide of shapes used to get vertices
+            ungroupedShapes.Delete();
+
             // Clean the temp directory
             CleanTempDirectory(folderPath);
             return result;
