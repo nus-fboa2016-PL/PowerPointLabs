@@ -7,6 +7,8 @@ using AutoShape = Microsoft.Office.Core.MsoAutoShapeType;
 using System.Diagnostics;
 using Drawing = System.Drawing;
 using System.IO;
+using PowerPointLabs.Models;
+using Microsoft.Office.Interop.PowerPoint;
 
 namespace PowerPointLabs.PositionsLab
 {
@@ -1434,7 +1436,7 @@ namespace PowerPointLabs.PositionsLab
             // Get the co-ordinates of node in that freeform shape
             try
             {
-                foreach (PowerPoint.ShapeNode sn in nodes)
+                foreach (Microsoft.Office.Interop.PowerPoint.ShapeNode sn in nodes)
                 {
                     // Works for most shapes, except for rare cases like Chords 
                     if (sn.EditingType == MsoEditingType.msoEditingSymmetric)
