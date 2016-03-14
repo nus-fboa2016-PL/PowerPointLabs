@@ -23,7 +23,6 @@ namespace PowerPointLabs.ResizeLab
         private const string LockAspectRatioToolTip = "Locks the aspect ratio of objects when performing resizing of objects";
         private readonly Bitmap _unlockedImage;
         private readonly Bitmap _lockedImage;
-        private readonly Dictionary<string, ShapeProperties> _originalShapeProperties = new Dictionary<string, ShapeProperties>(); 
 
         public ResizeLabPaneWPF()
         {
@@ -390,14 +389,9 @@ namespace PowerPointLabs.ResizeLab
             return this.GetCurrentSelection();
         }
 
-        private void CleanOriginalShapes()
-        {
-            _originalShapeProperties.Clear();
-        }
-
         private void Btn_MouseLeave(object sender, MouseEventArgs e)
         {
-            Reset();
+            Reset(2);
         }
 
         #endregion

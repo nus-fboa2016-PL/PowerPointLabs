@@ -9,7 +9,7 @@ namespace PowerPointLabs.ResizeLab
         void ShowErrorMessageBox(string content, Exception exception = null);
         void Preview(PowerPoint.ShapeRange selectedShapes, Action<PowerPoint.ShapeRange> previewAction, int minNumberofSelectedShapes);
         void Preview(PowerPoint.ShapeRange selectedShapes, float referenceWidth, float referenceHeight, Action<PowerPoint.ShapeRange, float, float, bool> previewAction);
-        void Reset();
+        void Reset(int numberOfUndo);
         void ExecuteResizeAction(PowerPoint.ShapeRange selectedShapes, Action<PowerPoint.ShapeRange> resizeAction);
         void ExecuteResizeAction(PowerPoint.ShapeRange selectedShapes, float slideWidth, float slideHeight,
             Action<PowerPoint.ShapeRange, float, float, bool> resizeAction);
