@@ -39,7 +39,7 @@ namespace PowerPointLabs.PositionsLab
 
         //Variable for preview
         bool _previewIsExecuted = false;
-        private static Dictionary<int, System.Drawing.PointF> allShapePos = new Dictionary<int, System.Drawing.PointF>();
+        private static Dictionary<int, PositionShapeProperties> allShapePos = new Dictionary<int, PositionShapeProperties>();
 
         //Brushes for highlighting buttons
         private Media.SolidColorBrush lightBlueBrush;
@@ -1318,13 +1318,14 @@ namespace PowerPointLabs.PositionsLab
 
                 foreach (Shape s in selectedShapes)
                 {
-                    var point = new System.Drawing.PointF();
-                    var isPresent = allShapePos.TryGetValue(s.Id, out point);
+                    PositionShapeProperties properties;
+                    var isPresent = allShapePos.TryGetValue(s.Id, out properties);
 
                     if (isPresent)
                     {
-                        s.Left = point.X;
-                        s.Top = point.Y;
+                        s.Left = properties.Position.X;
+                        s.Top = properties.Position.Y;
+                        s.Rotation = properties.Rotation;
                     }
                 }
                 _previewIsExecuted = false;
@@ -1353,7 +1354,7 @@ namespace PowerPointLabs.PositionsLab
             {
                 var shape = range[i];
                 var duplicated = shape.Duplicate()[1];
-                duplicated.Name = shape.Name + "_Copy";
+                duplicated.Name = shape.Id + "";
                 duplicated.Left = shape.Left;
                 duplicated.Top = shape.Top;
                 duplicatedShapeIndices[i - 1] = totalShapes + i;
@@ -1375,12 +1376,12 @@ namespace PowerPointLabs.PositionsLab
             return initialPositions;
         }
 
-        private void SaveSelectedShapePositions(PowerPoint.ShapeRange shapes, Dictionary<int, System.Drawing.PointF> dictionary)
+        private void SaveSelectedShapePositions(PowerPoint.ShapeRange shapes, Dictionary<int, PositionShapeProperties> dictionary)
         {
             dictionary.Clear();
             foreach (Shape s in shapes)
             {
-                dictionary.Add(s.Id, new System.Drawing.PointF(s.Left, s.Top));
+                dictionary.Add(s.Id, new PositionShapeProperties(new System.Drawing.PointF(s.Left, s.Top), s.Rotation));
             }
         }
     }
