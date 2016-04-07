@@ -44,7 +44,7 @@
     <PublishUrl>C:\Users\Giki\Desktop\pptlabsPublish\</PublishUrl>
     <InstallUrl>http://www.comp.nus.edu.sg/~pptlabs/download/dev/</InstallUrl>
     <TargetCulture>en</TargetCulture>
-    <ApplicationVersion>2.8.7.0</ApplicationVersion>
+    <ApplicationVersion>2.8.7.1</ApplicationVersion>
     <AutoIncrementApplicationRevision>false</AutoIncrementApplicationRevision>
     <UpdateEnabled>true</UpdateEnabled>
     <UpdateInterval>0</UpdateInterval>
@@ -569,6 +569,7 @@
     <Compile Include="ResizeLab\ResizeLabMain.AdjustProportionally.cs" />
     <Compile Include="ResizeLab\ResizeLabMain.Match.cs" />
     <Compile Include="ResizeLab\ResizeLabMain.SlightAdjust.cs" />
+    <Compile Include="ResizeLab\ResizeLabTooltip.cs" />
     <Compile Include="ResizeLab\ResizeLabUtil.cs" />
     <Compile Include="ResizeLab\Symmetric.cs" />
     <Compile Include="ResizeLab\ResizeLabPaneWPF.xaml.InterfaceImpl.cs" />
