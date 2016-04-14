@@ -77,7 +77,7 @@
                 <Image Source="..\Resources\SettingsGear.png"/>
             </cc:ImageButton>
 
-            <GroupBox x:Name="SameSizeGroupBox" Header="Equalize" Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+            <GroupBox x:Name="SameSizeGroupBox" Header="Equalize" Grid.Row="5" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
                 <Grid Margin="-7,-7,-7,-7">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="65" />
@@ -163,7 +163,7 @@
                 </Grid>
             </GroupBox>
 
-            <GroupBox x:Name="ProportionGroupBox" Header="Adjust Proportionally" Grid.Row="5" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+            <GroupBox x:Name="ProportionGroupBox" Header="Adjust Proportionally" Grid.Row="1" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
                 <Grid Margin="-7,-7,-7,-7">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="65" />
